@@ -19,19 +19,22 @@ async def ensure_auth():
     state_file = "auth_state.json"
     if os.path.exists(state_file):
         return  
+    
     print("Авторизация...")
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context()
         page = await context.new_page()
+        
         await page.goto("https://fapfolder.club/signin", wait_until="networkidle")
         await page.fill('input[placeholder="Ваш E-mail или Логин"]', LOGIN)
         await page.fill('input[placeholder="Пароль"]', PASSWORD)
         await page.click('button:has-text("Войти")')
+        
         await page.wait_for_timeout(5000)
         await context.storage_state(path=state_file)
         await browser.close()
-        print("Успешно!")
+        print("Авторизация успешна!")
 
 # 2. Сбор медиа
 async def scrape_media(url: str, media_type: str):
@@ -52,7 +55,8 @@ async def scrape_media(url: str, media_type: str):
         await page.goto(url, wait_until="networkidle", timeout=60000)
         await page.wait_for_timeout(5000) 
 
-        for _ in range(3): # Жмем "Больше" 3 раза
+        # Жмем "Больше" 3 раза
+        for _ in range(3):
             try:
                 btn = page.locator("text=Больше")
                 if await btn.is_visible():
